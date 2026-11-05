@@ -42,5 +42,8 @@ module.exports = {
     signAndEditExecutable: false,
     artifactName: "Forma Journal.exe",
   },
-  portable: { artifactName: "Forma Journal.exe",useZip:true },
+  // In this electron-builder version, true omits UNPACK_DIR_NAME, so NSIS uses
+  // its unique per-launch $PLUGINSDIR. The default shares a build-wide folder;
+  // a second launch then deletes files still needed by the first instance.
+  portable: { artifactName: "Forma Journal.exe", useZip: true, unpackDirName: true },
 };

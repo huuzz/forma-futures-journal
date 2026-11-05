@@ -133,6 +133,8 @@ npm run typecheck
 npm run build
 ```
 
+After packaging on Windows, run `node scripts/smoke-desktop.mjs` to check the actual portable executable. It opens a disposable journal, opens the launcher a second time, and verifies every main page still renders. Personal records are not used.
+
 Tests cover trading calculations, analytics, dates/DST, exports, local persistence/concurrency/corruption handling, attachment validation, and request-origin protection. No external database is needed. Earlier Supabase design documents in docs describe the original version; **docs/local-conversion-plan.md** supersedes their backend, authentication, and deployment requirements.
 
 Contract sources: [CME Micro E-mini specifications](https://www.cmegroup.com/articles/faqs/micro-e-mini-equity-index-futures-frequently-asked-questions.html), [CME Gold specifications](https://www.cmegroup.com/trading/metals/files/fact-card-gold-futures-options.pdf), [CME Micro WTI specifications](https://www.cmegroup.com/education/articles-and-reports/micro-wti-crude-oil-futures-faq).

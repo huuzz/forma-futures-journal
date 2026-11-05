@@ -2,6 +2,10 @@
 
 ## Windows desktop application
 
+A portable relaunch regression reproduced the reported failure: after a second launch, the cached dashboard returned 200 while the unopened Add Trade page returned 500. The default NSIS launcher reused one build-wide temporary directory and removed it when the second Electron process exited. In the installed electron-builder version, `portable.unpackDirName: true` omits the shared directory define and uses NSIS's per-launch plugin directory. `scripts/smoke-desktop.mjs` covers this against the real executable with a disposable profile and cold page loads after the second launch.
+
+The rebuilt executable passed that regression: Dashboard, Add Trade, Trade History, Calendar, Analytics, Trading Journal, Settings, and Getting started all returned 200 after the second launcher exited. The full 40-test suite, ESLint, and TypeScript checks also passed.
+
 The Windows x64 portable build was packaged and launched successfully. Its embedded Next.js server started on a dynamically selected loopback port. Native window accessibility inspection confirmed the dashboard rendered the disposable QA journal and F1 opened the Getting started page. The QA window was closed before opening the personal application. A desktop shortcut was created. The personal server reported ready; the subsequent personal-window screen check was stopped by the user with Escape.
 
 The desktop suite adds six tests for origin boundaries, unused ports, migration, existing-data preservation, invalid sources, and waiting for an active writer before taking the migration snapshot. The complete suite has 40 tests. The build is unsigned. Packaged server dependencies are explicitly included and checked after packing.
