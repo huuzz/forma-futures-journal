@@ -1,5 +1,5 @@
 -- Run once in a new Supabase project. All money and prices use exact numeric.
-create extension if not exists pgcrypto;
+-- gen_random_uuid() is built into PostgreSQL 13+; no extension is required.
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -166,3 +166,15 @@ create policy screenshot_read on storage.objects for select to authenticated usi
 create policy screenshot_insert on storage.objects for insert to authenticated with check(bucket_id='screenshots' and (storage.foldername(name))[1]=(select auth.uid())::text);
 create policy screenshot_delete on storage.objects for delete to authenticated using(bucket_id='screenshots' and (storage.foldername(name))[1]=(select auth.uid())::text);
 -- Uploads use unique immutable paths. Replacing an image uploads a new object.
+
+create function public.delete_journal_data() returns void language plpgsql security invoker set search_path='' as $$
+begin
+  if auth.uid() is null then raise exception 'Authentication required'; end if;
+  delete from public.trades where user_id=auth.uid();
+  delete from public.journal_entries where user_id=auth.uid();
+  delete from public.mistake_tags where user_id=auth.uid();
+  delete from public.emotion_tags where user_id=auth.uid();
+end;
+$$;
+revoke all on function public.delete_journal_data() from public,anon;
+grant execute on function public.delete_journal_data() to authenticated;

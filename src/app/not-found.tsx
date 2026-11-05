@@ -1,2 +1,15 @@
-import Link from 'next/link';
-export default function NotFound() { return <main className="mx-auto max-w-md p-12"><p className="eyebrow">404</p><h1 className="page-title mt-3">This page is off the charts.</h1><p className="page-description">The page or record could not be found in your workspace.</p><Link className="mt-6 inline-block text-primary" href="/dashboard">Return to dashboard →</Link></main>; }
+import Link from "next/link";
+export default function NotFound() {
+  return (
+    <main className="mx-auto max-w-md p-12">
+      <p className="eyebrow">404</p>
+      <h1 className="page-title mt-3">This page is off the charts.</h1>
+      <p className="page-description">
+        The page or record could not be found in your workspace.
+      </p>
+      <Link className="mt-6 inline-block text-primary" href="/dashboard">
+        Return to dashboard →
+      </Link>
+    </main>
+  );
+}

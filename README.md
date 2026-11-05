@@ -19,6 +19,8 @@ npm run dev
 
 Open http://localhost:3000. Without environment configuration, the app shows `/setup`; it does not silently save to browser storage.
 
+Visit `/preview` for an empty-data dashboard preview before connecting Supabase. It never reads or saves account data. The normal workspace remains protected by authentication.
+
 ## Configure Supabase
 
 1. Create a new Supabase project.
@@ -40,6 +42,26 @@ npm run build
 ```
 
 Node's built-in test runner executes TypeScript domain tests without a separate test framework. Live Supabase integration tests require a configured project; local unit/build checks do not prove deployed authentication or RLS behavior.
+
+The test suite also runs the actual SQL migration in PGlite (local PostgreSQL) against minimal Supabase-compatible auth/storage schemas. It checks provisioning, per-user RLS, cross-owner foreign keys, tick/stop validation, daily uniqueness, storage-object isolation, and owner-scoped bulk deletion. This validates PostgreSQL policies locally; Supabase email delivery, cookie refresh, storage-service MIME enforcement, and signed URLs still require live integration testing.
+
+## Application behavior
+
+- `/trades/new`: manual entries, live decimal calculations, incomplete drafts, notes, psychology, custom emotion/mistake labels, and private screenshots through browse/drop/paste.
+- `/trades`: searchable, sortable, filterable history; each row opens an editable full trade.
+- `/dashboard`: realized metrics, cumulative/daily/weekly/monthly charts, recent closed trades, discipline, and streaks with date filters.
+- `/calendar`: monthly results with daily details, weekly totals, screenshots, and daily reflections.
+- `/analytics`: profitability, entry-time windows, instrument comparisons, planned risk, contract quantities, loss sequences, mistakes, and emotions.
+- `/journal`: one reflection per date, editing/search/deletion, and private daily screenshots.
+- `/settings`: profile, timezone, theme, currency formatting, screenshot size, custom instruments, CSV/JSON export, and confirmed journal deletion.
+
+Closed trades realize on their exit date in the configured timezone. History's date filters use the explicitly entered trade date. Breakeven trades count in win-rate denominators and reset the current streak. Profit factor uses positive and negative net trade results; it displays infinity if there are wins but no losses, and unavailable if neither exists. Missing initial risk excludes a trade from R/risk averages. Drawdown measures cumulative realized P&L, not account equity.
+
+Entry-time analytics use the configured timezone. Session groups are explicitly labeled local clock windows: 00:00–06:59, 07:00–09:29, 09:30–15:59, and 16:00–23:59, not exchange session calendars. Repeated DST execution times choose the earlier occurrence; nonexistent local times are rejected. Standard contract prices must be positive in this version.
+
+Screenshots are uploaded after the parent record is saved. Partial failures retain only unfinished images for retry. Stable per-image paths and idempotent metadata registration prevent duplicate attachments after lost responses. Saved screenshots can be recaptioned, replaced, viewed full-size, or deleted. Export includes screenshot metadata, not binary image files; private signed viewing links expire after 15 minutes.
+
+Deleting records removes their storage images before removing relational records. Storage and PostgreSQL cannot share a transaction; errors report partial removal so it can be retried. Bulk relational deletion itself is transactional. Use the Settings bulk-deletion action to include orphan images from interrupted uploads.
 
 ## Security model
 
