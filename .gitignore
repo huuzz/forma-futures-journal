@@ -36,6 +36,7 @@ yarn-error.log*
 
 # Personal local journal and images must never enter source control or source archives.
 /data/
+/desktop-stage/
 
 # vercel
 .vercel

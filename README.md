@@ -1,11 +1,68 @@
-# Forma — personal, fully local futures journal
+# Forma — Futures Trading Journal
+
+A personal futures trading journal for recording executions, reviewing performance, and building trading discipline. Runs as a Windows desktop app or a local web application, with your records and screenshots stored on your own computer.
+
+**Next.js · TypeScript · React · Tailwind CSS · Electron · Recharts**
+
+![Forma local dashboard with an empty journal](docs/screenshots/local-dashboard.jpg)
+
+## Project highlights
+
+- Trade entry with decimal P&L, fees, risk/reward, and realized R calculations.
+- Performance dashboard, daily calendar, analytics, and searchable trade history.
+- Screenshot attachments and daily trading reflections.
+- Atomic local saves, concurrent-write protection, and recovery snapshots.
+- A sandboxed Electron window with a bundled local server and one-time data migration.
+- Automated coverage for calculations, dates, persistence, uploads, request boundaries, and desktop migration.
+
+## Run from source
+
+Requires Node.js 24+ and npm. Clone this repository, open its folder, then run:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open **http://127.0.0.1:3000**. No account, API keys, or database setup is required. For a production web build, run `npm run build` followed by `npm start`.
+
+### Build the Windows desktop app
+
+On Windows x64:
+
+```sh
+npm ci
+npm run build
+npm run desktop:prepare
+npm run desktop:pack
+```
+
+The portable executable is written to `../Forma Journal/Forma Journal.exe`. Double-click it to open the app. The runtime is included. Building requires internet for dependencies and packaging tools; running the finished app works offline. The build is unsigned. Desktop shortcuts are created separately; source builds do not install one automatically.
+
+## Architecture
+
+`src/app` contains the pages and server actions; `src/components` contains the journal UI. `src/lib` holds the trading calculations, analytics, validation, and local file store. `desktop` wraps the production standalone server in Electron. `tests` exercises domain logic and disk-backed storage using temporary data.
+
+This repository contains application source and an empty-journal screenshot. Personal trades, uploaded images, data directories, environment secrets, dependency folders, and generated builds are excluded. It is a single-user local app; hosting it publicly would require a separate authentication and storage design.
+
+## Personal use
 
 Trades, notes, preferences, and screenshots stay on your computer. No Supabase, account, API key, subscription, or cloud deployment is required. Internet access is only needed to install dependencies the first time. The app uses Next.js/TypeScript/Tailwind, Recharts, and Lucide, with a local file database. There are no demonstration trades.
 
 ## Open your journal on Windows
 
+**Desktop app:** double-click the **Forma Journal** icon on your desktop. It opens its own window; no browser tab, terminal, Node installation, or setup is needed. Save your changes before closing. Closing the desktop window stops its own background server; opening the icon again brings your saved journal back.
+
+Inside the app, click **Getting started** in the sidebar (or press **F1**) for the simple guide. Start with **Add Trade**, fill in the execution details, then click **Save trade**. Use **Save draft** for incomplete entries. Trade History lets you reopen and edit records; Trading Journal is for daily reflections.
+
+Desktop records are stored under `%APPDATA%\Forma Journal\data`. On first opening, existing records from the earlier local web version are copied there when no desktop journal already exists. The original folder is kept. From then on, use the desktop icon so you are always editing the desktop copy. Choose **Journal → Open data folder** in the menu to find and back up the correct folder.
+
+The portable executable is `../Forma Journal/Forma Journal.exe`. Keep that file in place while using its desktop shortcut. The runtime is bundled; internet is not needed to run it. This personal build is unsigned.
+
+### Earlier browser launcher (optional)
+
 1. Keep this application folder somewhere permanent.
-2. Double-click **Start Journal.cmd**. The app opens at **http://127.0.0.1:3000**. First launch may take a few minutes to install/build; Node.js 24 LTS or newer is required and is already installed on the computer used to build this project.
+2. **Start Journal.cmd** opens the desktop executable when it is present. Without it, the script falls back to the earlier browser app at **http://127.0.0.1:3000**. That fallback requires Node.js 24 LTS or newer and may install/build on first launch.
 3. Start recording trades. Saves are written to your computer immediately; closing the browser does not erase them.
 
 The launcher starts the server in the background. **Stop Journal.cmd** stops this copy's server without deleting your records. **Open Data Folder.cmd** opens the default data folder. If port 3000 belongs to another application or a different journal copy, close it before launching this one.
@@ -22,7 +79,7 @@ For development, use `npm run dev`. Normal start/development commands bind to **
 
 ## Where your data lives
 
-The default folder is **data**, directly inside the application folder:
+Desktop builds use **%APPDATA%\Forma Journal\data**. The browser version uses **data**, directly inside the source folder. Both contain:
 
 ```text
 data/

@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   HardDrive,
+  CircleHelp,
   ShieldCheck,
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -29,6 +30,7 @@ const links = [
   ["/analytics", "Analytics", ChartNoAxesCombined],
   ["/journal", "Trading Journal", BookOpen],
   ["/settings", "Settings", Settings2],
+  ["/help", "Getting started", CircleHelp],
 ] as const;
 export function Shell({
   children,
