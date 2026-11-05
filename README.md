@@ -1,38 +1,73 @@
-# Forma — Futures Trading Journal
+# Forma — personal, fully local futures journal
 
-A private, manual futures trading journal built with Next.js App Router, TypeScript, Tailwind, shadcn-style components, Supabase Auth/PostgreSQL/Storage, Recharts and Lucide. Deployable to Vercel. No broker connections, account balances, fabricated trades, or imports.
+Trades, notes, preferences, and screenshots stay on your computer. No Supabase, account, API key, subscription, or cloud deployment is required. Internet access is only needed to install dependencies the first time. The app uses Next.js/TypeScript/Tailwind, Recharts, and Lucide, with a local file database. There are no demonstration trades.
 
-## Requirements
+## Open your journal on Windows
 
-- Node.js 24 LTS and npm.
-- A Supabase project (the free tier can be used within its limits). Authentication, database access, and private uploads require your project's public URL/key. No paid API is needed by this source code.
-- Vercel access only when you choose to deploy.
+1. Keep this application folder somewhere permanent.
+2. Double-click **Start Journal.cmd**. The app opens at **http://127.0.0.1:3000**. First launch may take a few minutes to install/build; Node.js 24 LTS or newer is required and is already installed on the computer used to build this project.
+3. Start recording trades. Saves are written to your computer immediately; closing the browser does not erase them.
 
-## Run locally
+The launcher starts the server in the background. **Stop Journal.cmd** stops this copy's server without deleting your records. **Open Data Folder.cmd** opens the default data folder. If port 3000 belongs to another application or a different journal copy, close it before launching this one.
+
+You can also run from a terminal:
 
 ```powershell
 npm ci
-Copy-Item .env.example .env.local
-# Fill in your project's public URL and publishable key.
-npm run dev
+npm run build
+npm start
 ```
 
-Open http://localhost:3000. Without environment configuration, the app shows `/setup`; it does not silently save to browser storage.
+For development, use `npm run dev`. Normal start/development commands bind to **127.0.0.1**, so the journal is available on this computer only. Framework telemetry is disabled by the supplied launcher and npm scripts. Keep the server running while using the journal.
 
-Visit `/preview` for an empty-data dashboard preview before connecting Supabase. It never reads or saves account data. The normal workspace remains protected by authentication.
+## Where your data lives
 
-## Configure Supabase
+The default folder is **data**, directly inside the application folder:
 
-1. Create a new Supabase project.
-2. Open SQL Editor and run `supabase/migrations/001_foundation.sql` once. It creates the tables, RLS, authentication provisioning trigger, standard instruments and private screenshots bucket. Use a fresh project to avoid name collisions. With Supabase CLI, migrations can instead be applied using `supabase db push` after linking your project.
-3. Copy the Project URL and publishable key from the project's API settings into `.env.local`. A legacy anon key is also supported. **Never use a secret or service-role key in a NEXT_PUBLIC variable.**
-4. Under Authentication → URL Configuration, set Site URL to `http://localhost:3000`; add `http://localhost:3000/auth/callback` as a redirect URL. Production uses the equivalent HTTPS URL. Set `NEXT_PUBLIC_SITE_URL` to the same base URL.
-5. Keep email confirmation enabled. Configure an SMTP provider for production email delivery according to your needs; the built-in provider has delivery/rate restrictions.
-6. Restart the dev server. Create an account, confirm the email, then sign in. Confirm and reset links must be opened in the browser that initiated the flow, because authentication uses PKCE cookies.
+```text
+data/
+  journal.json        Trades, reflections, profile, preferences, instruments
+  journal.json.bak    Previous valid metadata snapshot
+  screenshots/        Original screenshot files
+```
 
-Tables are created before users sign up so the provisioning trigger can create profiles/settings. For a project with existing users, backfill those rows before using it.
+The exact folder appears in Settings. All these files are ignored by Git and excluded from the source ZIP. Clearing browser cookies/cache or reinstalling node_modules does not remove them. Removing the application's data folder does.
 
-## Validation
+For an alternate location, set the `FORMA_DATA_DIR` environment variable to an absolute folder path before starting the app. The default launch scripts require no environment file. If you choose an alternate location, use the path shown in Settings when opening or backing up your files.
+
+### Back up your journal
+
+1. Close the browser and run **Stop Journal.cmd**.
+2. Copy the **entire data folder** to another drive or backup location.
+3. Restart with **Start Journal.cmd**.
+
+To restore, stop the journal, preserve a copy of the current data folder, and replace it with your saved complete folder. The `journal.json.bak` file is only the previous metadata snapshot, not a complete image backup. If `journal.json` becomes damaged, the app reports an error and does not overwrite it with an empty journal. Restore from your backup or copy `journal.json.bak` to `journal.json` with the journal stopped.
+
+Confirmed deletions also remove the deleted records from the app-managed metadata snapshot. Copies you made elsewhere are unaffected. If a crash leaves the app reporting that the journal is busy, stop all journal servers first; only then remove abandoned `.write.lock` and `.recovery.lock` files from the data folder and restart. Never remove these locks while a journal server is saving.
+
+CSV/JSON exports in Settings contain records and screenshot metadata; they do not include original image bytes. Use a complete folder backup when you want the screenshots too. When upgrading or moving the app, keep and copy your data folder.
+
+## Features
+
+- Manual one-entry/one-exit futures trades; incomplete drafts, open trades, editing, and confirmed deletion.
+- Decimal calculations for long/short P&L, total commissions/fees, documented adjustments, initial risk, planned reward/risk, realized R, points/ticks, and duration.
+- NQ, MNQ, ES, MES, GC, MGC, CL, MCL, and custom instruments. Trades preserve their saved contract specifications.
+- Screenshot browse/drop/paste, previews, full-size viewing, saved captions, replacement, and deletion. PNG/JPG/WebP; up to 10 MB per image or a lower limit in Settings.
+- Searchable/filterable/sortable history; dashboard, calendar, and profitability/time/instrument/risk/discipline analytics.
+- Daily reflections with attachments, one per date; custom emotion and mistake labels.
+- Profile, timezone, currency formatting, light/dark theme, exports, and confirmed journal-data deletion.
+
+Closed trades realize on their **exit date in your configured timezone**. History filters use the explicitly entered trade date. Draft/open trades never enter realized P&L. Missing stops leave risk/R metrics unavailable. Breakeven trades count in the win-rate denominator and reset win/loss streaks. Drawdown measures cumulative realized results, not account equity. Currency changes formatting, not exchange-rate conversion; standard contracts calculate USD results. Prices must be positive in this version.
+
+Entry-time analytics use labeled local clock windows: 00:00–06:59, 07:00–09:29, 09:30–15:59, 16:00–23:59. These are not exchange holiday/session calendars. For repeated DST times, the earlier occurrence is used; nonexistent local times are rejected.
+
+## Local storage behavior
+
+Saves validate inputs, lock the database, write a temporary file, and atomically replace journal.json. A previous valid metadata snapshot is retained. Screenshot paths use validated IDs; image data is checked server-side and never served from a public static folder. Retried uploads use stable image IDs. Non-loopback hosts and cross-origin mutations are rejected.
+
+This is one personal workspace. There is no account password or app-level encryption. Disk files use your computer account's permissions; software or other users who can access the running local server can use the journal. It is designed for your own computer, not a shared machine, shared hosting, cloud deployment, or a network drive with unreliable locking.
+
+## Checks
 
 ```powershell
 npm test
@@ -41,51 +76,6 @@ npm run typecheck
 npm run build
 ```
 
-Node's built-in test runner executes TypeScript domain tests without a separate test framework. Live Supabase integration tests require a configured project; local unit/build checks do not prove deployed authentication or RLS behavior.
+Tests cover trading calculations, analytics, dates/DST, exports, local persistence/concurrency/corruption handling, attachment validation, and request-origin protection. No external database is needed. Earlier Supabase design documents in docs describe the original version; **docs/local-conversion-plan.md** supersedes their backend, authentication, and deployment requirements.
 
-The test suite also runs the actual SQL migration in PGlite (local PostgreSQL) against minimal Supabase-compatible auth/storage schemas. It checks provisioning, per-user RLS, cross-owner foreign keys, tick/stop validation, daily uniqueness, storage-object isolation, and owner-scoped bulk deletion. This validates PostgreSQL policies locally; Supabase email delivery, cookie refresh, storage-service MIME enforcement, and signed URLs still require live integration testing.
-
-## Application behavior
-
-- `/trades/new`: manual entries, live decimal calculations, incomplete drafts, notes, psychology, custom emotion/mistake labels, and private screenshots through browse/drop/paste.
-- `/trades`: searchable, sortable, filterable history; each row opens an editable full trade.
-- `/dashboard`: realized metrics, cumulative/daily/weekly/monthly charts, recent closed trades, discipline, and streaks with date filters.
-- `/calendar`: monthly results with daily details, weekly totals, screenshots, and daily reflections.
-- `/analytics`: profitability, entry-time windows, instrument comparisons, planned risk, contract quantities, loss sequences, mistakes, and emotions.
-- `/journal`: one reflection per date, editing/search/deletion, and private daily screenshots.
-- `/settings`: profile, timezone, theme, currency formatting, screenshot size, custom instruments, CSV/JSON export, and confirmed journal deletion.
-
-Closed trades realize on their exit date in the configured timezone. History's date filters use the explicitly entered trade date. Breakeven trades count in win-rate denominators and reset the current streak. Profit factor uses positive and negative net trade results; it displays infinity if there are wins but no losses, and unavailable if neither exists. Missing initial risk excludes a trade from R/risk averages. Drawdown measures cumulative realized P&L, not account equity.
-
-Entry-time analytics use the configured timezone. Session groups are explicitly labeled local clock windows: 00:00–06:59, 07:00–09:29, 09:30–15:59, and 16:00–23:59, not exchange session calendars. Repeated DST execution times choose the earlier occurrence; nonexistent local times are rejected. Standard contract prices must be positive in this version.
-
-Screenshots are uploaded after the parent record is saved. Partial failures retain only unfinished images for retry. Stable per-image paths and idempotent metadata registration prevent duplicate attachments after lost responses. Saved screenshots can be recaptioned, replaced, viewed full-size, or deleted. Export includes screenshot metadata, not binary image files; private signed viewing links expire after 15 minutes.
-
-Deleting records removes their storage images before removing relational records. Storage and PostgreSQL cannot share a transaction; errors report partial removal so it can be retried. Bulk relational deletion itself is transactional. Use the Settings bulk-deletion action to include orphan images from interrupted uploads.
-
-## Security model
-
-- Every server mutation verifies the current user through Supabase Auth; all user tables enforce row-level ownership.
-- Composite foreign keys prevent associating attachments/tags with a different owner's records.
-- Shared instrument defaults are read-only. Custom contracts are owner-specific.
-- Screenshots live in a private bucket. Object paths begin with the user ID. Signed URLs are temporary.
-- No administrative database credentials are used. Authorization is not delegated solely to navigation or proxy redirects.
-- Authenticated pages are dynamically rendered and responses carry private/no-store caching headers.
-
-Before production, create two test users and verify that neither can read/update/delete the other's trades, journal entries, attachment metadata, or storage objects. Verify password recovery and email confirmation on your configured production domain. Check that anonymous table/storage requests are denied. Apply the migration to a disposable project first.
-
-## Deploy to Vercel
-
-1. Push this directory to your own Git repository and import it into Vercel.
-2. Choose the Next.js preset and Node.js 24 runtime. Use `npm run build`.
-3. Add the public Supabase URL/key and production `NEXT_PUBLIC_SITE_URL` to Vercel environment settings.
-4. Add the production callback URL in Supabase Auth settings before signing in.
-5. Deploy, then verify authentication and private uploads with your own project. No deployment is performed automatically by this local source project.
-
-## Source references
-
-- [Supabase SSR authentication](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
-- [Next.js App Router](https://nextjs.org/docs/app)
-- [CME Micro E-mini specifications](https://www.cmegroup.com/articles/faqs/micro-e-mini-equity-index-futures-frequently-asked-questions.html)
-- [CME Gold specifications](https://www.cmegroup.com/trading/metals/files/fact-card-gold-futures-options.pdf)
-- [CME Micro WTI specifications](https://www.cmegroup.com/education/articles-and-reports/micro-wti-crude-oil-futures-faq)
+Contract sources: [CME Micro E-mini specifications](https://www.cmegroup.com/articles/faqs/micro-e-mini-equity-index-futures-frequently-asked-questions.html), [CME Gold specifications](https://www.cmegroup.com/trading/metals/files/fact-card-gold-futures-options.pdf), [CME Micro WTI specifications](https://www.cmegroup.com/education/articles-and-reports/micro-wti-crude-oil-futures-faq).

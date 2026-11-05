@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- Private signed URLs and local object previews are intentionally direct images. */
+/* eslint-disable @next/next/no-img-element -- Local image endpoints and object previews are intentionally direct images. */
 import { useState, useEffect, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
@@ -11,9 +11,8 @@ import {
   RefreshCw,
   Save,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+
 import {
-  registerScreenshot,
   removeScreenshot,
   updateScreenshotCaption,
 } from "@/app/(journal)/attachments";
@@ -31,38 +30,21 @@ export async function uploadImages(
   recordId: string,
   images: PendingImage[],
 ) {
-  const client = createClient();
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-  if (!user) throw new Error("Sign in again before uploading screenshots.");
   return uploadBatch(images, async (image) => {
-    const extension =
-      image.file.type === "image/png"
-        ? "png"
-        : image.file.type === "image/webp"
-          ? "webp"
-          : "jpg";
-    const path = `${user.id}/${kind}/${recordId}/${image.id}.${extension}`;
-    const { error } = await client.storage
-      .from("screenshots")
-      .upload(path, image.file, {
-        contentType: image.file.type,
-        upsert: false,
-      });
-    if (error) {
-      const { data: existing } = await client.storage
-        .from("screenshots")
-        .info(path);
-      if (!existing) throw error;
-    }
-    const result = await registerScreenshot({
-      kind,
-      recordId,
-      path,
-      caption: image.caption,
+    const form = new FormData();
+    form.set("kind", kind);
+    form.set("recordId", recordId);
+    form.set("id", image.id);
+    form.set("caption", image.caption);
+    form.set("file", image.file);
+    const response = await fetch("/api/screenshots", {
+      method: "POST",
+      body: form,
     });
-    if (result.error) throw new Error(result.error);
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || "Could not save screenshot locally.");
+    }
   });
 }
 export function ImagePicker({
@@ -235,34 +217,14 @@ export function ScreenshotGallery({
   onChange?: () => void;
   limitMb?: number;
 }) {
-  const [urls, setUrls] = useState<Record<string, string>>({});
+  const urls = Object.fromEntries(
+    images.map((image) => [image.id, `/api/screenshots/${image.id}`]),
+  );
   const [captions, setCaptions] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [replacing, setReplacing] = useState<Screenshot | null>(null);
   const picker = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    let active = true;
-    const client = createClient();
-    void Promise.all(
-      images.map(async (image) => {
-        const { data, error } = await client.storage
-          .from("screenshots")
-          .createSignedUrl(image.object_path, 900);
-        if (error) throw error;
-        return [image.id, data?.signedUrl || ""];
-      }),
-    )
-      .then((entries) => {
-        if (active) setUrls(Object.fromEntries(entries));
-      })
-      .catch(() => {
-        if (active) setError("Could not load screenshots. Refresh to retry.");
-      });
-    return () => {
-      active = false;
-    };
-  }, [images]);
   async function run(id: string, operation: () => Promise<{ error?: string }>) {
     setBusy(id);
     setError("");
@@ -367,8 +329,8 @@ export function ScreenshotGallery({
                     </Dialog.Close>
                   </div>
                   <Dialog.Description className="sr-only">
-                    Full-size private screenshot. Link expires after 15 minutes;
-                    reload to refresh.
+                    Full-size screenshot stored on this computer; press Escape
+                    to close.
                   </Dialog.Description>
                   {urls[image.id] && (
                     <img

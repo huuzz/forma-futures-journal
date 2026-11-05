@@ -1,26 +1,15 @@
-import { requireUser } from "@/lib/supabase/server";
+import { getWorkspace } from "@/lib/data";
 import { Shell } from "@/components/shell";
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export default async function JournalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, supabase } = await requireUser();
-  const [{ data: profile }, { data: settings }] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", user.id).single(),
-    supabase
-      .from("application_settings")
-      .select("theme")
-      .eq("user_id", user.id)
-      .single(),
-  ]);
+  const { profile, settings } = await getWorkspace();
   return (
-    <Shell
-      name={profile?.display_name}
-      email={user.email}
-      initialTheme={settings?.theme}
-    >
+    <Shell name={profile.display_name} initialTheme={settings.theme}>
       {children}
     </Shell>
   );

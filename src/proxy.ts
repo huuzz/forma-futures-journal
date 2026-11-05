@@ -1,28 +1,22 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { publicConfig } from "@/lib/config";
-export async function proxy(request: NextRequest) {
-  const config = publicConfig();
-  let response = NextResponse.next({ request });
-  if (!config) return response;
-  const supabase = createServerClient(config.url, config.key, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (values) => {
-        values.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        values.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
-  await supabase.auth.getUser();
+import { isLocalRequest } from "@/lib/local-request";
+export function proxy(request: NextRequest) {
+  if (
+    !isLocalRequest(
+      request.headers.get("host"),
+      request.headers.get("origin"),
+      request.method,
+    )
+  )
+    return new NextResponse(
+      "This personal journal accepts only local, same-origin requests.",
+      { status: 403 },
+    );
+  const response = NextResponse.next();
   response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
   return response;
 }
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|icon.svg).*)"],
 };

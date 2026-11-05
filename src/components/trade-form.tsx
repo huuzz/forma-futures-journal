@@ -87,12 +87,10 @@ export function TradeForm({
   trade,
   specs,
   settings,
-  preview = false,
 }: {
   trade?: Trade;
   specs: ContractSpec[];
   settings: Settings;
-  preview?: boolean;
 }) {
   const [value, setValue] = useState<Trade>(
     () =>
@@ -122,10 +120,6 @@ export function TradeForm({
     ["adjustment", "Manual adjustment ($)"],
   ] as const;
   async function submit(draft = false) {
-    if (preview) {
-      setMessage("Preview only. Connect Supabase to save your trades.");
-      return;
-    }
     if (locked.current) return;
     locked.current = true;
     setError("");

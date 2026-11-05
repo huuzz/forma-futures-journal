@@ -12,15 +12,13 @@ import {
   Settings2,
   Sun,
   Moon,
-  LogOut,
   PanelLeftClose,
   PanelLeft,
-  ArrowUpRight,
+  HardDrive,
   ShieldCheck,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { signOut } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 const links = [
@@ -35,14 +33,10 @@ const links = [
 export function Shell({
   children,
   name,
-  email,
-  setup = false,
   initialTheme,
 }: {
   children: React.ReactNode;
   name?: string;
-  email?: string;
-  setup?: boolean;
   initialTheme?: string;
 }) {
   const path = usePathname();
@@ -82,7 +76,7 @@ export function Shell({
       >
         <div className="flex h-20 items-center justify-between px-6">
           <Link
-            href={setup ? "/setup" : "/dashboard"}
+            href="/dashboard"
             className="flex items-center gap-2.5 text-[23px] font-semibold tracking-[-1px]"
           >
             <Activity className="size-6 text-primary" />
@@ -98,11 +92,11 @@ export function Shell({
         </div>
         <div className="mx-5 mb-7 rounded-lg border border-border bg-background/40 p-3">
           <p className="flex items-center gap-2 text-xs font-medium">
-            <span className="size-1.5 rounded-full bg-primary" />
+            <HardDrive className="size-3 text-primary" />
             Personal workspace
           </p>
-          <p className="mt-1 pl-3.5 text-[10px] text-muted-foreground">
-            Futures trading journal
+          <p className="mt-1 pl-5 text-[10px] text-muted-foreground">
+            Stored on this computer
           </p>
         </div>
         <p className="eyebrow px-7 pb-3">Workspace</p>
@@ -147,26 +141,17 @@ export function Shell({
           </div>
           <div className="mt-5 flex items-center gap-3">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-primary">
-              {(name || email || "Y").slice(0, 1).toUpperCase()}
+              {(name || "M").slice(0, 1).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium">
-                {name || "Your workspace"}
+                {name || "My journal"}
               </p>
               <p className="truncate text-[10px] text-muted-foreground">
-                {email || "Private journal"}
+                Personal · local storage
               </p>
             </div>
-            {!setup && (
-              <form action={signOut}>
-                <button
-                  aria-label="Sign out"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </form>
-            )}
+            <HardDrive className="size-4 text-muted-foreground" />
           </div>
         </div>
       </aside>
@@ -183,24 +168,16 @@ export function Shell({
               <PanelLeft className="size-5" />
             </Button>
             <p className="text-xs text-muted-foreground">
-              Workspace <span className="mx-3 text-border">/</span>
+              Workspace<span className="mx-3 text-border">/</span>
               <span className="text-foreground">
-                {setup
-                  ? "Getting started"
-                  : links.find(([href]) => href === path)?.[1] ||
-                    "Trade details"}
+                {links.find(([href]) => href === path)?.[1] || "Trade details"}
               </span>
             </p>
           </div>
           <div className="flex items-center gap-4">
             <span className="hidden items-center gap-1.5 text-[10px] text-muted-foreground sm:flex">
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  setup ? "bg-primary" : "bg-profit",
-                )}
-              />
-              {setup ? "Setup required" : "Private workspace"}
+              <span className="size-1.5 rounded-full bg-profit" />
+              Local journal
             </span>
             <Button
               variant="ghost"
@@ -214,13 +191,9 @@ export function Shell({
               <Moon className="size-4 dark:hidden" />
             </Button>
             <Button asChild size="sm">
-              <Link href={setup ? "/login" : "/trades/new"}>
-                {setup ? "Sign in" : "Add trade"}
-                {setup ? (
-                  <ArrowUpRight className="size-3.5" />
-                ) : (
-                  <Plus className="size-3.5" />
-                )}
+              <Link href="/trades/new">
+                Add trade
+                <Plus className="size-3.5" />
               </Link>
             </Button>
           </div>
@@ -229,7 +202,7 @@ export function Shell({
           {children}
         </main>
         <footer className="mx-5 flex justify-between border-t border-border py-5 text-[10px] text-muted-foreground sm:mx-8">
-          <span>Forma Journal</span>
+          <span>Forma Journal · stored on this computer</span>
           <span>Build your process. Understand your edge.</span>
         </footer>
       </div>

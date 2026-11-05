@@ -10,8 +10,9 @@ export default function ErrorPage({
     <div className="mx-auto my-24 max-w-md p-6">
       <h1 className="page-title">Something interrupted your journal.</h1>
       <p className="page-description mb-6">
-        Your saved records are unchanged. Check your connection and Supabase
-        configuration, then try again.
+        The local journal could not be loaded. Check your data folder
+        permissions and available disk space, then try again. If journal.json is
+        damaged, restore a copy from your backup before making further changes.
       </p>
       <Button onClick={reset}>Try again</Button>
     </div>

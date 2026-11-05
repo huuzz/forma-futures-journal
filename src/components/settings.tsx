@@ -15,12 +15,12 @@ export function SettingsView({
   settings,
   specs,
   displayName,
-  email,
+  storagePath,
 }: {
   settings: Settings;
   specs: ContractSpec[];
   displayName: string;
-  email: string;
+  storagePath: string;
 }) {
   const [value, setValue] = useState({
     ...settings,
@@ -81,9 +81,9 @@ export function SettingsView({
                   />
                 </label>
                 <label>
-                  Email
+                  Storage mode
                   <input
-                    value={email}
+                    value="Local · no account required"
                     readOnly
                     className="text-muted-foreground"
                   />
@@ -275,8 +275,9 @@ export function SettingsView({
             <p className="my-3 text-xs leading-6 text-muted-foreground">
               Download your saved records. JSON includes trades, calculations,
               journal entries, settings, and instrument specifications.
-              Screenshot metadata is included; image files remain in private
-              storage.
+              Screenshot metadata is included; image files remain in your local
+              data folder. To back up images too, copy the complete data folder
+              with the journal closed.
             </p>
             <div className="flex flex-wrap gap-3">
               {[
@@ -297,9 +298,9 @@ export function SettingsView({
             <CardTitle>Delete journal data</CardTitle>
             <p className="mb-5 mt-3 text-xs leading-6 text-muted-foreground">
               Permanently remove all trades, daily reflections, tags, and
-              screenshots from this workspace. Your sign-in, profile,
-              preferences, and instrument specifications remain. Export a copy
-              first if you want to keep your records.
+              screenshots from this workspace. Your profile, preferences, and
+              instrument specifications remain. Export a copy first if you want
+              to keep your records.
             </p>
             <form
               onSubmit={(e) => {
@@ -341,8 +342,18 @@ export function SettingsView({
             <ShieldCheck className="mb-4 size-6 text-primary" />
             <CardTitle>Your journal. Your space.</CardTitle>
             <p className="mt-3 text-xs leading-6 text-muted-foreground">
-              Your records are private to your authenticated workspace.
-              Screenshots use private storage and temporary viewing links.
+              Trades, reflections, preferences, and screenshots are saved on
+              this computer. No account or internet connection is needed after
+              installation.
+            </p>
+            <p className="mt-5 text-xs font-medium">Data folder</p>
+            <p className="mt-2 break-all rounded-lg bg-background p-3 text-[11px] text-muted-foreground">
+              {storagePath}
+            </p>
+            <p className="mt-3 text-[11px] leading-6 text-muted-foreground">
+              For a complete backup, close the journal and copy this entire
+              folder to another drive. Browser cache clearing does not remove
+              it.
             </p>
           </Card>
           {error && (
